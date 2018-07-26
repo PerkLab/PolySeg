@@ -1,0 +1,41 @@
+#-----------------------------------------------------------------------------
+# Configuration file for the PolySeg library
+#
+# © Copyright 2018 The Laboratory for Percutaneous Surgery, Queen's University, Canada
+#
+# This file can be passed to a CMake FIND_PACKAGE call with the following syntax:
+#
+# FIND_PACKAGE(PolySeg @PolySeg_VERSION@ <REQUIRED|QUIET> <NO_MODULE>)
+#   If NO_MODULE is included, set the variable PolySeg_DIR:PATH=@CMAKE_BINARY_DIR@
+#
+# Once successful, you can either use the USE_FILE approach by the following CMake command:
+# INCLUDE(${PLUS_USE_FILE})
+#
+# Or you can use the following variables to configure your CMake project:
+#  PolySeg_INCLUDE_DIRS - include directories for Plus headers
+#  PolySeg_LIBRARIES - list of CMake targets produced by this build of Plus
+#  PolySeg_DATA_DIR - directory containing data collector configuration files, sample images, and 3d models
+#-----------------------------------------------------------------------------
+
+# set the targets file (relative for install location)
+@PolySeg_CONFIG_CODE@
+IF(VTK_FOUND)
+  IF(NOT ${VTK_VERSION} VERSION_EQUAL "@VTK_VERSION@")
+    MESSAGE(SEND_ERROR "Trying to use different VTK versions in PolySeg (@VTK_VERSION@) and your superceeding project (${VTK_VERSION}), use the same version of VTK.")
+  ENDIF()
+ELSE()
+  SET(VTK_DIR "@VTK_CONFIG_DIR@" CACHE PATH "Path to VTK")
+ENDIF()
+
+FIND_PACKAGE(VTK "@VTK_VERSION@" EXACT REQUIRED NO_MODULE)
+INCLUDE(${VTK_USE_FILE}) # Must be included as VTK does not populate CMake target properties correctly
+
+INCLUDE(${PolySeg_TARGETS_FILE})
+
+# Tell the user project where to find our headers and libraries
+SET(PolySeg_INCLUDE_DIRS "@PolySeg_INCLUDE_DIRS@")
+SET(PolySeg_DATA_DIR "@PolySeg_DATA_DIR@")
+SET(PolySeg_LIBRARIES "@PolySeg_DEPENDENCIES@")
+
+# Tell the user project where to find Plus use file
+SET(PolySeg_USE_FILE "@PolySeg_CONFIG_USEFILE@")
