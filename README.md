@@ -25,3 +25,7 @@ The automatic conversion between the different segment representations is driven
 A simplified architecture diagram of PolySeg integrated within the [3D Slicer](www.slicer.org) open-source medical image analysis and visualization platform:
 
 ![PolySeg architecture](doc/images/PolySegArchitecture.png)
+
+## How to cite
+
+Pinter, C., Lasso, A., & Fichtinger, G. (2019). Polymorph segmentation representation for medical image computing. Computer Methods and Programs in Biomedicine, 171, 19–26. https://doi.org/10.1016/j.cmpb.2019.02.011
