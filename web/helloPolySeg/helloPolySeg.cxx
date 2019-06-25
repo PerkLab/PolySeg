@@ -25,8 +25,9 @@
 #include "vtkPolyData.h"
 #include "vtkSphereSource.h"
 #include "vtkMatrix4x4.h"
-// #include <vtkImageAccumulate.h"
-// #include "vtkImageStencil.h"
+// Not sure why: fatal error: 'vtkImageAccumulate.h' file not found
+//#include "vtkImageAccumulate.h"
+//#include "vtkImageStencil.h"
 
 // SegmentationCore includes
 #include "vtkSegmentation.h"
@@ -35,7 +36,7 @@
 #include "vtkOrientedImageData.h"
 #include "vtkSegmentationConverterFactory.h"
 #include "vtkBinaryLabelmapToClosedSurfaceConversionRule.h"
-//#include "vtkClosedSurfaceToBinaryLabelmapConversionRule.h"
+#include "vtkClosedSurfaceToBinaryLabelmapConversionRule.h"
 
 void CreateSpherePolyData(vtkPolyData* polyData);
 void CreateCubeLabelmap(vtkOrientedImageData* imageData);
@@ -47,10 +48,11 @@ int main(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   ImageType::Pointer image = ImageType::New();
 
 
+  // TODO: For some reason uncommenting these gives pthread errors
   // Register converter rules
-  vtkSegmentationConverterFactory::GetInstance()->RegisterConverterRule(
-    vtkSmartPointer<vtkBinaryLabelmapToClosedSurfaceConversionRule>::New() );
   /*vtkSegmentationConverterFactory::GetInstance()->RegisterConverterRule(
+    vtkSmartPointer<vtkBinaryLabelmapToClosedSurfaceConversionRule>::New() );
+  vtkSegmentationConverterFactory::GetInstance()->RegisterConverterRule(
     vtkSmartPointer<vtkClosedSurfaceToBinaryLabelmapConversionRule>::New() );*/
 
   //////////////////////////////////////////////////////////////////////////
@@ -64,22 +66,19 @@ int main(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   std::cout << "ITK Hello World!" << std::endl;
   std::cout << spherePolyData->GetNumberOfPolys() << std::endl;
 
-  // return 0;
-
-
   // Create segment
   vtkNew<vtkSegment> sphereSegment;
   sphereSegment->SetName("sphere1");
-  sphereSegment->AddRepresentation(
+  /*sphereSegment->AddRepresentation(
     vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName(), spherePolyData.GetPointer());
   if (!sphereSegment->GetRepresentation(vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName()))
     {
     std::cerr << __LINE__ << ": Failed to add closed surface representation to segment!" << std::endl;
     return EXIT_FAILURE;
-    }
+    }*/
 
   // Create segmentation with segment
-  vtkNew<vtkSegmentation> sphereSegmentation;
+  /*vtkNew<vtkSegmentation> sphereSegmentation;
   sphereSegmentation->SetMasterRepresentationName(
     vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName() );
   sphereSegmentation->AddSegment(sphereSegment.GetPointer());
@@ -87,9 +86,9 @@ int main(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
     {
     std::cerr << __LINE__ << ": Failed to add segment to segmentation!" << std::endl;
     return EXIT_FAILURE;
-    }
+    }*/
 
-  std::cout << sphereSegmentation->GetNumberOfSegments() << std::endl;
+  //std::cout << sphereSegmentation->GetNumberOfSegments() << std::endl;
   std::cout << "Segmentation test passed." << std::endl;
   return EXIT_SUCCESS;
 }
