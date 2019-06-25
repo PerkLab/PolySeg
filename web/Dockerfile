@@ -28,7 +28,7 @@ RUN ls /install-prefix/lib/PolySeg/
 # TODO: For some reason it is installed in this weird directory
 # /install-prefix/lib/PolySeg/libPolySeg.a
 
-
 ARG IMAGE=ohif/polyseg-web
 ARG VERSION=latest
+ENV DEFAULT_DOCKCROSS_IMAGE ${IMAGE}:${VERSION}
 WORKDIR /work
