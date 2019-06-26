@@ -1,4 +1,4 @@
-FROM insighttoolkit/itk-js:latest
+FROM kitware/itk-js-vtk:latest
 MAINTAINER PerkLab
 
 WORKDIR /
@@ -62,7 +62,7 @@ RUN git clone https://github.com/PerkLab/PolySeg.git && \
   cd PolySeg-build && \
   cmake \
     -DCMAKE_BUILD_TYPE:STRING=Release \
-    -DBUILD_SHARED_LIBS:BOOL=OFF \
+    -DBUILD_SHARED_LIBS:BOOL=ON \
     -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} \
     -DCMAKE_INSTALL_PREFIX:PATH=/install-prefix \
     -DBUILD_TESTING:BOOL=OFF \
@@ -74,7 +74,7 @@ RUN git clone https://github.com/PerkLab/PolySeg.git && \
 
 RUN ls /install-prefix/lib/PolySeg/
 # TODO: For some reason it is installed in this weird directory
-# /install-prefix/lib/PolySeg/libPolySeg.a
+# /install-prefix/lib/PolySeg/libPolySeg.so
 
 ARG IMAGE=ohif/polyseg-web
 ARG VERSION=latest

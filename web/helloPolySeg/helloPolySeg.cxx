@@ -26,8 +26,8 @@
 #include "vtkSphereSource.h"
 #include "vtkMatrix4x4.h"
 // Not sure why: fatal error: 'vtkImageAccumulate.h' file not found
-//#include "vtkImageAccumulate.h"
-//#include "vtkImageStencil.h"
+#include "vtkImageAccumulate.h"
+#include "vtkImageStencil.h"
 
 // SegmentationCore includes
 #include "vtkSegmentation.h"
