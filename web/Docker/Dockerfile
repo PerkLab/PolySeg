@@ -61,7 +61,7 @@ RUN git clone https://github.com/PerkLab/PolySeg.git && \
   cd PolySeg-build && \
   cmake \
     -DCMAKE_BUILD_TYPE:STRING=Release \
-    -DBUILD_SHARED_LIBS:BOOL=ON \
+    -DBUILD_SHARED_LIBS:BOOL=OFF \
     -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} \
     -DCMAKE_INSTALL_PREFIX:PATH=/install-prefix \
     -DBUILD_TESTING:BOOL=OFF \

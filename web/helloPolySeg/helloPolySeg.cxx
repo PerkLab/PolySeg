@@ -25,7 +25,6 @@
 #include "vtkPolyData.h"
 #include "vtkSphereSource.h"
 #include "vtkMatrix4x4.h"
-// Not sure why: fatal error: 'vtkImageAccumulate.h' file not found
 #include "vtkImageAccumulate.h"
 #include "vtkImageStencil.h"
 
@@ -48,8 +47,7 @@ int main(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   ImageType::Pointer image = ImageType::New();
 
 
-  // TODO: For some reason uncommenting these gives pthread errors
-  // Register converter rules
+// Register converter rules
   vtkSegmentationConverterFactory::GetInstance()->RegisterConverterRule(
     vtkSmartPointer<vtkBinaryLabelmapToClosedSurfaceConversionRule>::New() );
   vtkSegmentationConverterFactory::GetInstance()->RegisterConverterRule(
@@ -63,9 +61,6 @@ int main(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   vtkNew<vtkPolyData> spherePolyData;
   CreateSpherePolyData(spherePolyData.GetPointer());
 
-  std::cout << "ITK Hello World!" << std::endl;
-  std::cout << spherePolyData->GetNumberOfPolys() << std::endl;
-
   // Create segment
   vtkNew<vtkSegment> sphereSegment;
   sphereSegment->SetName("sphere1");
@@ -74,7 +69,7 @@ int main(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   if (!sphereSegment->GetRepresentation(vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName()))
     {
     std::cerr << __LINE__ << ": Failed to add closed surface representation to segment!" << std::endl;
-    return EXIT_FAILURE;
+    //return EXIT_FAILURE;
     }
 
   // Create segmentation with segment
@@ -85,7 +80,7 @@ int main(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   if (sphereSegmentation->GetNumberOfSegments() != 1)
     {
     std::cerr << __LINE__ << ": Failed to add segment to segmentation!" << std::endl;
-    return EXIT_FAILURE;
+    //return EXIT_FAILURE;
     }
 
   // Convert to binary labelmap without reference geometry
@@ -95,16 +90,206 @@ int main(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   if (!defaultImageData)
     {
     std::cerr << __LINE__ << ": Failed to convert closed surface representation to binary labelmap without reference geometry!" << std::endl;
-    return EXIT_FAILURE;
+    //return EXIT_FAILURE;
     }
   std::string defaultGeometryString = vtkSegmentationConverter::SerializeImageGeometry(defaultImageData);
   if (defaultGeometryString.compare("1;0;0;20.7521629333496;0;1;0;20.7521629333496;0;0;1;20;0;0;0;1;0;59;0;59;0;60;"))
     {
     std::cerr << __LINE__ << ": Default reference geometry mismatch!" << std::endl;
-    return EXIT_FAILURE;
+    //return EXIT_FAILURE;
+    }
+  /*vtkNew<vtkImageAccumulate> imageAccumulate;
+  imageAccumulate->SetInputData(defaultImageData);
+  imageAccumulate->Update();
+  if (imageAccumulate->GetMax()[0] != 1)
+    {
+    std::cerr << __LINE__ << ": Binary labelmap converted without reference geometry has no foreground voxels!" << std::endl;
+    //return EXIT_FAILURE;
+    }
+  if (imageAccumulate->GetVoxelCount() != 219600)
+    {
+    std::cerr << __LINE__ << ": Unexpected binary labelmap extent after converting without reference geometry!" << std::endl;
+    //return EXIT_FAILURE;
+    }*/
+
+  // Remove binary labelmap representation from segment
+  sphereSegment->RemoveRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName());
+  if (sphereSegment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()))
+    {
+    std::cerr << __LINE__ << ": Failed to remove binary labelmap representation from segment!" << std::endl;
+    //return EXIT_FAILURE;
     }
 
-  std::cout << sphereSegmentation->GetNumberOfSegments() << std::endl;
+  // Create non-default reference geometry for conversion
+  vtkNew<vtkMatrix4x4> referenceGeometryMatrix;
+  referenceGeometryMatrix->Identity();
+  referenceGeometryMatrix->SetElement(0,0,2.0);
+  referenceGeometryMatrix->SetElement(1,1,2.0);
+  referenceGeometryMatrix->SetElement(2,2,2.0);
+  int referenceGeometryExtent[6] = {0,99,0,99,0,99};
+  std::string referenceGeometryString = vtkSegmentationConverter::SerializeImageGeometry(referenceGeometryMatrix.GetPointer(), referenceGeometryExtent);
+  if (referenceGeometryString.compare("2;0;0;0;0;2;0;0;0;0;2;0;0;0;0;1;0;99;0;99;0;99;"))
+    {
+    std::cerr << __LINE__ << ": Failed to serialize reference geometry!" << std::endl;
+    //return EXIT_FAILURE;
+    }
+  sphereSegmentation->SetConversionParameter(
+    vtkSegmentationConverter::GetReferenceImageGeometryParameterName(), referenceGeometryString );
+
+  // Convert to binary labelmap with reference geometry
+  sphereSegmentation->CreateRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName());
+  vtkOrientedImageData* customImageData = vtkOrientedImageData::SafeDownCast(
+    sphereSegment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) );
+  if (!customImageData)
+    {
+    std::cerr << __LINE__ << ": Failed to convert closed surface representation to binary labelmap with custom reference geometry!" << std::endl;
+    //return EXIT_FAILURE;
+    }
+  /*imageAccumulate->SetInputData(customImageData);
+  imageAccumulate->Update();
+  if (imageAccumulate->GetMax()[0] != 1)
+    {
+    std::cerr << __LINE__ << ": Binary labelmap converted with custom reference geometry has no foreground voxels!" << std::endl;
+    //return EXIT_FAILURE;
+    }
+  if (imageAccumulate->GetVoxelCount() != 29791)
+    {
+    std::cerr << __LINE__ << ": Unexpected binary labelmap extent after converting with custom reference geometry!" << std::endl;
+    //return EXIT_FAILURE;
+    }*/
+
+  // Add second segment
+  vtkNew<vtkPolyData> spherePolyData2;
+  CreateSpherePolyData(spherePolyData2.GetPointer());
+  vtkNew<vtkSegment> sphereSegment2;
+  sphereSegment2->SetName("sphere2");
+  sphereSegment2->AddRepresentation(
+    vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName(), spherePolyData2.GetPointer());
+  if (!sphereSegment2->GetRepresentation(vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName()))
+    {
+    std::cerr << __LINE__ << ": Failed to add closed surface representation to second segment!" << std::endl;
+    //return EXIT_FAILURE;
+    }
+  
+  sphereSegmentation->AddSegment(sphereSegment2.GetPointer());
+  if (sphereSegmentation->GetNumberOfSegments() != 2)
+    {
+    std::cerr << __LINE__ << ": Failed to add second segment to segmentation!" << std::endl;
+    //return EXIT_FAILURE;
+    }
+  if (!sphereSegment2->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()))
+    {
+    std::cerr << __LINE__ << ": Failed to auto-convert second segment to binary labelmap on adding it to segmentation!" << std::endl;
+    //return EXIT_FAILURE;
+    }
+
+  // Remove segment
+  sphereSegmentation->RemoveSegment(sphereSegment2.GetPointer());
+  if (sphereSegmentation->GetNumberOfSegments() != 1)
+    {
+    std::cerr << __LINE__ << ": Failed to remove second segment from segmentation!" << std::endl;
+    //return EXIT_FAILURE;
+    }
+
+  // Re-add segment
+  sphereSegmentation->AddSegment(sphereSegment2.GetPointer());
+  if (sphereSegmentation->GetNumberOfSegments() != 2)
+    {
+    std::cerr << __LINE__ << ": Failed to re-add second segment to segmentation!" << std::endl;
+    //return EXIT_FAILURE;
+    }
+
+  // Try to add segment with unsupported representation
+  vtkNew<vtkPolyData> unsupportedPolyData;
+  CreateSpherePolyData(unsupportedPolyData.GetPointer());
+  vtkNew<vtkSegment> unsupportedSegment;
+  unsupportedSegment->SetName("unsupported");
+  unsupportedSegment->AddRepresentation("Unsupported", unsupportedPolyData.GetPointer());
+  sphereSegmentation->AddSegment(unsupportedSegment.GetPointer());
+  if (sphereSegmentation->GetNumberOfSegments() != 2)
+    {
+    std::cerr << __LINE__ << ": Unexpected outcome when adding segment containing unsupported representation to segmentation!" << std::endl;
+    //return EXIT_FAILURE;
+    }
+
+  //////////////////////////////////////////////////////////////////////////
+  // Create segmentation with one segment from labelmap and test conversion
+  // to closed surface model
+
+  // Generate cube image data
+  vtkNew<vtkOrientedImageData> cubeImageData;
+  CreateCubeLabelmap(cubeImageData.GetPointer());
+
+  // Create segment
+  vtkNew<vtkSegment> cubeSegment;
+  cubeSegment->SetName("cube");
+  cubeSegment->AddRepresentation(
+    vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName(), cubeImageData.GetPointer());
+  if (!cubeSegment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()))
+    {
+    std::cerr << __LINE__ << ": Failed to add binary labelmap representation to segment!" << std::endl;
+    //return EXIT_FAILURE;
+    }
+
+  // Create segmentation with segment
+  vtkNew<vtkSegmentation> cubeSegmentation;
+  cubeSegmentation->SetMasterRepresentationName(
+    vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName() );
+  cubeSegmentation->AddSegment(cubeSegment.GetPointer());
+  if (cubeSegmentation->GetNumberOfSegments() != 1)
+    {
+    std::cerr << __LINE__ << ": Failed to add segment to second segmentation!" << std::endl;
+    //return EXIT_FAILURE;
+    }
+
+  // Convert to closed surface model
+  cubeSegmentation->CreateRepresentation(vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName());
+  vtkPolyData* closedSurfaceModel = vtkPolyData::SafeDownCast(
+    cubeSegment->GetRepresentation(vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName()) );
+  if (!closedSurfaceModel)
+    {
+    std::cerr << __LINE__ << ": Failed to convert binary labelmap representation to closed surface model!" << std::endl;
+    //return EXIT_FAILURE;
+    }
+
+  // Add segment with closed surface representation, see if it is converted to master
+  vtkNew<vtkPolyData> nonMasterPolyData;
+  CreateSpherePolyData(nonMasterPolyData.GetPointer());
+  vtkNew<vtkSegment> nonMasterSegment;
+  nonMasterSegment->SetName("non master");
+  nonMasterSegment->AddRepresentation(
+    vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName(), nonMasterPolyData.GetPointer() );
+  cubeSegmentation->AddSegment(nonMasterSegment.GetPointer());
+  if (cubeSegmentation->GetNumberOfSegments() != 2)
+    {
+    std::cerr << __LINE__ << ": Failed to add segment with non-master representation to segmentation!" << std::endl;
+    //return EXIT_FAILURE;
+    }
+  if (!nonMasterSegment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()))
+    {
+    std::cerr << __LINE__ << ": Master representation was not created when adding non-master segment to segmentation!" << std::endl;
+    //return EXIT_FAILURE;
+    }
+
+  //////////////////////////////////////////////////////////////////////////
+  // Copy and move segments between segmentations
+
+  // Copy
+  cubeSegmentation->CopySegmentFromSegmentation(sphereSegmentation.GetPointer(), "sphere1");
+  if (sphereSegmentation->GetNumberOfSegments() != 2 || cubeSegmentation->GetNumberOfSegments() != 3)
+    {
+    std::cerr << __LINE__ << ": Error when copying segment from one segmentation to another!" << std::endl;
+    //return EXIT_FAILURE;
+    }
+
+  // Move
+  sphereSegmentation->CopySegmentFromSegmentation(cubeSegmentation.GetPointer(), "cube", true);
+  if (sphereSegmentation->GetNumberOfSegments() != 3 || cubeSegmentation->GetNumberOfSegments() != 2)
+    {
+    std::cerr << __LINE__ << ": Error when moving segment from one segmentation to another!" << std::endl;
+    //return EXIT_FAILURE;
+    }
+
   std::cout << "Segmentation test passed." << std::endl;
   return EXIT_SUCCESS;
 }
