@@ -41,22 +41,22 @@ vtkStandardNewMacro(vtkCalculateOversamplingFactor);
 //----------------------------------------------------------------------------
 vtkCalculateOversamplingFactor::vtkCalculateOversamplingFactor()
 {
-  this->InputPolyData = NULL;
-  this->ReferenceGeometryImageData = NULL;
+  this->InputPolyData = nullptr;
+  this->ReferenceGeometryImageData = nullptr;
   this->OutputOversamplingFactor = 1;
   this->OutputRelativeStructureSize = 0.0;
   this->OutputComplexityMeasure = 0.0;
   this->OutputNormalizedShapeIndex = 0.0;
-  this->MassPropertiesAlgorithm = NULL;
+  this->MassPropertiesAlgorithm = nullptr;
   this->LogSpeedMeasurementsOff();
 }
 
 //----------------------------------------------------------------------------
 vtkCalculateOversamplingFactor::~vtkCalculateOversamplingFactor()
 {
-  this->SetInputPolyData(NULL);
-  this->SetReferenceGeometryImageData(NULL);
-  this->SetMassPropertiesAlgorithm(NULL);
+  this->SetInputPolyData(nullptr);
+  this->SetReferenceGeometryImageData(nullptr);
+  this->SetMassPropertiesAlgorithm(nullptr);
 }
 
 //----------------------------------------------------------------------------
@@ -127,7 +127,7 @@ bool vtkCalculateOversamplingFactor::CalculateOversamplingFactor()
     }
 
   // Clean up (triggers destruction of member)
-  this->SetMassPropertiesAlgorithm(NULL);
+  this->SetMassPropertiesAlgorithm(nullptr);
 
   return true;
 }
@@ -162,17 +162,15 @@ bool vtkCalculateOversamplingFactor::CalculateRelativeStructureSize()
     vtkDebugMacro("CalculateRelativeStructureSize: Computed structure volume may be invalid according to difference in calculated projected and normal volumes.");
     }
 
-  // Calculate reference volume in mm^3
-  int dimensions[3] = {0,0,0};
-  this->ReferenceGeometryImageData->GetDimensions(dimensions);
+  // Calculate voxel volume in mm^3
   double spacing[3] = {0.0,0.0,0.0};
   this->ReferenceGeometryImageData->GetSpacing(spacing);
-  double volumeVolume = dimensions[0]*dimensions[1]*dimensions[2] * spacing[0]*spacing[1]*spacing[2]; // Number of voxels * volume of one voxel
+  double voxelVolume = spacing[0]*spacing[1]*spacing[2];
 
-  double relativeStructureSize = structureVolume / volumeVolume;
+  double relativeStructureSize = structureVolume / voxelVolume;
 
   // Map raw measurement to the fuzzy input scale
-  this->OutputRelativeStructureSize = (-1.0) * log10(relativeStructureSize);
+  this->OutputRelativeStructureSize = pow(relativeStructureSize, 1.0/3.0);
   vtkDebugMacro("CalculateRelativeStructureSize: Structure size fraction: " << relativeStructureSize << ", relative structure size: " << this->OutputRelativeStructureSize);
 
   return true;
@@ -224,22 +222,22 @@ double vtkCalculateOversamplingFactor::DetermineOversamplingFactor()
     }
 
   // Define input membership functions for relative structure size
-  vtkSmartPointer<vtkPiecewiseFunction> sizeLarge = vtkSmartPointer<vtkPiecewiseFunction>::New();
-  sizeLarge->AddPoint(0.5, 1);
-  sizeLarge->AddPoint(2, 0);
-  vtkSmartPointer<vtkPiecewiseFunction> sizeMedium = vtkSmartPointer<vtkPiecewiseFunction>::New();
-  sizeMedium->AddPoint(0.5, 0);
-  sizeMedium->AddPoint(2, 1);
-  sizeMedium->AddPoint(2.5, 1);
-  sizeMedium->AddPoint(3, 0);
-  vtkSmartPointer<vtkPiecewiseFunction> sizeSmall = vtkSmartPointer<vtkPiecewiseFunction>::New();
-  sizeSmall->AddPoint(2.5, 0);
-  sizeSmall->AddPoint(3, 1);
-  sizeSmall->AddPoint(3.25, 1);
-  sizeSmall->AddPoint(3.75, 0);
   vtkSmartPointer<vtkPiecewiseFunction> sizeVerySmall = vtkSmartPointer<vtkPiecewiseFunction>::New();
-  sizeVerySmall->AddPoint(3.25, 0);
-  sizeVerySmall->AddPoint(3.75, 1);
+  sizeVerySmall->AddPoint(7, 1);
+  sizeVerySmall->AddPoint(12, 0);
+  vtkSmartPointer<vtkPiecewiseFunction> sizeSmall = vtkSmartPointer<vtkPiecewiseFunction>::New();
+  sizeSmall->AddPoint(7, 0);
+  sizeSmall->AddPoint(12, 1);
+  sizeSmall->AddPoint(14, 1);
+  sizeSmall->AddPoint(18, 0);
+  vtkSmartPointer<vtkPiecewiseFunction> sizeMedium = vtkSmartPointer<vtkPiecewiseFunction>::New();
+  sizeMedium->AddPoint(14, 0);
+  sizeMedium->AddPoint(18, 1);
+  sizeMedium->AddPoint(36, 1);
+  sizeMedium->AddPoint(72, 0);
+  vtkSmartPointer<vtkPiecewiseFunction> sizeLarge = vtkSmartPointer<vtkPiecewiseFunction>::New();
+  sizeLarge->AddPoint(36, 0);
+  sizeLarge->AddPoint(72, 1);
 
   // Define input membership functions for complexity measure
   vtkSmartPointer<vtkPiecewiseFunction> complexityLow = vtkSmartPointer<vtkPiecewiseFunction>::New();
@@ -271,10 +269,10 @@ double vtkCalculateOversamplingFactor::DetermineOversamplingFactor()
   oversamplingVeryHigh->AddPoint(2.25, 1);
 
   // Fuzzify inputs
-  double sizeLargeMembership = sizeLarge->GetValue(this->OutputRelativeStructureSize);
-  double sizeMediumMembership = sizeMedium->GetValue(this->OutputRelativeStructureSize);
-  double sizeSmallMembership = sizeSmall->GetValue(this->OutputRelativeStructureSize);
   double sizeVerySmallMembership = sizeVerySmall->GetValue(this->OutputRelativeStructureSize);
+  double sizeSmallMembership = sizeSmall->GetValue(this->OutputRelativeStructureSize);
+  double sizeMediumMembership = sizeMedium->GetValue(this->OutputRelativeStructureSize);
+  double sizeLargeMembership = sizeLarge->GetValue(this->OutputRelativeStructureSize);
 
   double complexityLowMembership = complexityLow->GetValue(this->OutputComplexityMeasure);
   double complexityHighMembership = complexityHigh->GetValue(this->OutputComplexityMeasure);
@@ -447,45 +445,46 @@ void vtkCalculateOversamplingFactor::ApplyOversamplingOnImageGeometry(vtkOriente
     || oversamplingFactor > 100.0 )
     {
     vtkWarningWithObjectMacro(imageData, "vtkCalculateOversamplingFactor::ApplyOversamplingOnImageGeometry: Oversampling factor" << oversamplingFactor << "seems unreasonable!");
+    return;
     }
-  // Apply oversampling if needed
-  else if (oversamplingFactor != 1.0)
+  if (oversamplingFactor == 1.0)
     {
-    // Calculate extent and spacing
-    int newExtent[6] = {0,-1,0,-1,0,-1};
-    int extent[6] = {0,-1,0,-1,0,-1};
-    imageData->GetExtent(extent);
-    double newSpacing[3] = {0.0,0.0,0.0};
-    double spacing[3] = {0.0,0.0,0.0};
-    imageData->GetSpacing(spacing);
-    for (unsigned int axis=0; axis<3; ++axis)
-      {
-      int dimension = extent[axis*2+1] - extent[axis*2] + 1;
-      int extentMin = static_cast<int>(ceil(oversamplingFactor * extent[axis * 2]));
-      int extentMax = std::max(extentMin + static_cast<int>(floor(oversamplingFactor*dimension)) - 1, 0);
-      newExtent[axis*2] = extentMin;
-      newExtent[axis*2+1] = extentMax;
-      newSpacing[axis] = spacing[axis]
-        * double(extent[axis * 2 + 1] - extent[axis * 2] + 1)
-        / double(newExtent[axis * 2 + 1] - newExtent[axis * 2] + 1);
-      }
-    imageData->SetExtent(newExtent);
-    imageData->SetSpacing(newSpacing);
-    imageData->AllocateScalars(imageData->GetScalarType(), imageData->GetNumberOfScalarComponents());
-
-    // Origin is given in the center of voxels, but we want to have the corners of the new and old volumes
-    // to be in the same position, so we need to shift the origin by a half voxel size difference
-    vtkSmartPointer<vtkMatrix4x4> imageToWorld = vtkSmartPointer<vtkMatrix4x4>::New();
-    imageData->GetImageToWorldMatrix(imageToWorld);
-    double newOrigin_Image[4] =
-      {
-      0.5 * (1 - spacing[0] / newSpacing[0]),
-      0.5 * (1 - spacing[1] / newSpacing[1]),
-      0.5 * (1 - spacing[2] / newSpacing[2]),
-      1.0
-      };
-    double newOrigin_World[4] = { 0, 0, 0, 1 };
-    imageToWorld->MultiplyPoint(newOrigin_Image, newOrigin_World);
-    imageData->SetOrigin(newOrigin_World);
+    // Oversampling is not needed
+    return;
     }
+  // Calculate extent and spacing
+  int newExtent[6] = {0,-1,0,-1,0,-1};
+  int extent[6] = {0,-1,0,-1,0,-1};
+  imageData->GetExtent(extent);
+  double newSpacing[3] = {0.0,0.0,0.0};
+  double spacing[3] = {0.0,0.0,0.0};
+  imageData->GetSpacing(spacing);
+  for (unsigned int axis=0; axis<3; ++axis)
+    {
+    int dimension = extent[axis*2+1] - extent[axis*2] + 1;
+    int extentMin = static_cast<int>(ceil(oversamplingFactor * extent[axis * 2]));
+    int extentMax = std::max(extentMin + static_cast<int>(floor(oversamplingFactor*dimension)) - 1, 0);
+    newExtent[axis*2] = extentMin;
+    newExtent[axis*2+1] = extentMax;
+    newSpacing[axis] = spacing[axis]
+      * double(extent[axis * 2 + 1] - extent[axis * 2] + 1)
+      / double(newExtent[axis * 2 + 1] - newExtent[axis * 2] + 1);
+    }
+  imageData->SetExtent(newExtent);
+  imageData->SetSpacing(newSpacing);
+
+  // Origin is given in the center of voxels, but we want to have the corners of the new and old volumes
+  // to be in the same position, so we need to shift the origin by a half voxel size difference
+  vtkSmartPointer<vtkMatrix4x4> imageToWorld = vtkSmartPointer<vtkMatrix4x4>::New();
+  imageData->GetImageToWorldMatrix(imageToWorld);
+  double newOrigin_Image[4] =
+    {
+    0.5 * (1.0 - spacing[0] / newSpacing[0]),
+    0.5 * (1.0 - spacing[1] / newSpacing[1]),
+    0.5 * (1.0 - spacing[2] / newSpacing[2]),
+    1.0
+    };
+  double newOrigin_World[4] = { 0.0, 0.0, 0.0, 1.0 };
+  imageToWorld->MultiplyPoint(newOrigin_Image, newOrigin_World);
+  imageData->SetOrigin(newOrigin_World);
 }

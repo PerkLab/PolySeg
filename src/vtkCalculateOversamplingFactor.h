@@ -42,7 +42,7 @@ class PolySeg_EXPORT vtkCalculateOversamplingFactor : public vtkObject
 public:
   static vtkCalculateOversamplingFactor *New();
   vtkTypeMacro(vtkCalculateOversamplingFactor, vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
 public:
   /// Calculate oversampling factor for the input model and its rasterization reference volume
@@ -50,7 +50,9 @@ public:
   bool CalculateOversamplingFactor();
 
   /// Apply oversampling factor on image data geometry.
-  /// Changes spacing and extent of oversampling factor is not 1 (and sensible)
+  /// Changes spacing and extent of oversampling factor is not 1 (and between 0.01 - 100.0).
+  /// Larger value results larger resulting image extent (and finer resolution).
+  /// Does not allocate memory, just updates geometry.
   static void ApplyOversamplingOnImageGeometry(vtkOrientedImageData* imageData, double oversamplingFactor);
 
 protected:
@@ -120,11 +122,11 @@ protected:
 
 protected:
   vtkCalculateOversamplingFactor();
-  virtual ~vtkCalculateOversamplingFactor();
+  ~vtkCalculateOversamplingFactor() override;
 
 private:
-  vtkCalculateOversamplingFactor(const vtkCalculateOversamplingFactor&); // Not implemented
-  void operator=(const vtkCalculateOversamplingFactor&);               // Not implemented
+  vtkCalculateOversamplingFactor(const vtkCalculateOversamplingFactor&) = delete;
+  void operator=(const vtkCalculateOversamplingFactor&) = delete;
   //ETX
 };
 

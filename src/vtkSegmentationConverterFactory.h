@@ -43,7 +43,7 @@ public:
   typedef std::vector< vtkSmartPointer<vtkSegmentationConverterRule> > RuleListType;
 
   vtkTypeMacro(vtkSegmentationConverterFactory, vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /// Create a copy of all registered converter rules.
   /// The rule argument is overwritten (any previous content is cleared) with rules
@@ -94,7 +94,7 @@ public:
 
 protected:
   vtkSegmentationConverterFactory();
-  ~vtkSegmentationConverterFactory();
+  ~vtkSegmentationConverterFactory() override;
   vtkSegmentationConverterFactory(const vtkSegmentationConverterFactory&);
   void operator=(const vtkSegmentationConverterFactory&);
 

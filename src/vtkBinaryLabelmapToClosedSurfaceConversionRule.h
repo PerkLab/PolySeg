@@ -26,6 +26,9 @@
 
 #include "PolySegConfigure.h"
 
+// VTK includes
+#include <vtkPolyData.h>
+
 /// \ingroup SegmentationCore
 /// \brief Convert binary labelmap representation (vtkOrientedImageData type) to
 ///   closed surface representation (vtkPolyData type). The conversion algorithm
@@ -41,36 +44,47 @@ public:
   static const std::string GetSmoothingFactorParameterName() { return "Smoothing factor"; };
   /// Conversion parameter: compute surface normals
   static const std::string GetComputeSurfaceNormalsParameterName() { return "Compute surface normals"; };
+  /// Conversion parameter: joint smoothing
+  /// If joint smoothing is enabled, surfaces will be created and smoothed as one vtkPolyData.
+  /// Joint smoothing converts all segments in shared labelmap together, reducing smoothing artifacts.
+  static const std::string GetJointSmoothingParameterName() { return "Joint smoothing"; };
 
 public:
   static vtkBinaryLabelmapToClosedSurfaceConversionRule* New();
   vtkTypeMacro(vtkBinaryLabelmapToClosedSurfaceConversionRule, vtkSegmentationConverterRule);
-  virtual vtkSegmentationConverterRule* CreateRuleInstance() VTK_OVERRIDE;
+  vtkSegmentationConverterRule* CreateRuleInstance() override;
 
   /// Constructs representation object from representation name for the supported representation classes
   /// (typically source and target representation VTK classes, subclasses of vtkDataObject)
   /// Note: Need to take ownership of the created object! For example using vtkSmartPointer<vtkDataObject>::Take
-  virtual vtkDataObject* ConstructRepresentationObjectByRepresentation(std::string representationName) VTK_OVERRIDE;
+  vtkDataObject* ConstructRepresentationObjectByRepresentation(std::string representationName) override;
 
   /// Constructs representation object from class name for the supported representation classes
   /// (typically source and target representation VTK classes, subclasses of vtkDataObject)
   /// Note: Need to take ownership of the created object! For example using vtkSmartPointer<vtkDataObject>::Take
-  virtual vtkDataObject* ConstructRepresentationObjectByClass(std::string className) VTK_OVERRIDE;
+  vtkDataObject* ConstructRepresentationObjectByClass(std::string className) override;
+
+  /// Perform the actual binary labelmap to closed surface conversion
+  bool CreateClosedSurface(vtkOrientedImageData* inputImage, vtkPolyData* outputPolydata, std::vector<int> values);
 
   /// Update the target representation based on the source representation
-  virtual bool Convert(vtkDataObject* sourceRepresentation, vtkDataObject* targetRepresentation) VTK_OVERRIDE;
+  bool Convert(vtkSegment* segment) override;
+
+  /// Perform postprocesing steps on the output
+  /// Clears the joint smoothing cache
+  bool PostConvert(vtkSegmentation* segmentation) override;
 
   /// Get the cost of the conversion.
-  virtual unsigned int GetConversionCost(vtkDataObject* sourceRepresentation=NULL, vtkDataObject* targetRepresentation=NULL) VTK_OVERRIDE;
+  unsigned int GetConversionCost(vtkDataObject* sourceRepresentation=nullptr, vtkDataObject* targetRepresentation=nullptr) override;
 
   /// Human-readable name of the converter rule
-  virtual const char* GetName()  VTK_OVERRIDE { return "Binary labelmap to closed surface"; };
+  const char* GetName()  override { return "Binary labelmap to closed surface"; };
 
   /// Human-readable name of the source representation
-  virtual const char* GetSourceRepresentationName() VTK_OVERRIDE { return vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName(); };
+  const char* GetSourceRepresentationName() override { return vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName(); };
 
   /// Human-readable name of the target representation
-  virtual const char* GetTargetRepresentationName() VTK_OVERRIDE { return vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName(); };
+  const char* GetTargetRepresentationName() override { return vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName(); };
 
 protected:
   /// If input labelmap has non-background border voxels, then those regions remain open in the output closed surface.
@@ -79,8 +93,14 @@ protected:
 
 protected:
   vtkBinaryLabelmapToClosedSurfaceConversionRule();
-  ~vtkBinaryLabelmapToClosedSurfaceConversionRule();
+  ~vtkBinaryLabelmapToClosedSurfaceConversionRule() override;
   void operator=(const vtkBinaryLabelmapToClosedSurfaceConversionRule&);
+
+protected:
+  /// Cache for storing merged closed surfaces that have been joint smoothed
+  /// The key used is the binary labelmap representation, which maps to the combined vtkPolyData containing surfaces for all segments in the segmentation
+  std::map<vtkOrientedImageData*, vtkSmartPointer<vtkPolyData> > JointSmoothCache;
+
 };
 
 #endif // __vtkBinaryLabelmapToClosedSurfaceConversionRule_h
