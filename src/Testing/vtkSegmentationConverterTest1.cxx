@@ -51,25 +51,24 @@ class vtkRep##from##ToRep##to##Rule: public vtkSegmentationConverterRule \
 public: \
   static vtkRep##from##ToRep##to##Rule* New(); \
   vtkTypeMacro(vtkRep##from##ToRep##to##Rule, vtkSegmentationConverterRule); \
-  virtual vtkSegmentationConverterRule* CreateRuleInstance() VTK_OVERRIDE; \
+  virtual vtkSegmentationConverterRule* CreateRuleInstance() override; \
   virtual vtkDataObject* ConstructRepresentationObjectByRepresentation( \
-    std::string vtkNotUsed(representationName))  VTK_OVERRIDE { return NULL; }; \
+    std::string vtkNotUsed(representationName))  override { return nullptr; }; \
   virtual vtkDataObject* ConstructRepresentationObjectByClass( \
-    std::string vtkNotUsed(className)) VTK_OVERRIDE { return NULL; }; \
+    std::string vtkNotUsed(className)) override { return nullptr; }; \
   virtual bool Convert( \
-    vtkDataObject* vtkNotUsed(sourceRepresentation),\
-    vtkDataObject* vtkNotUsed(targetRepresentation)) VTK_OVERRIDE { return true; } \
+    vtkSegment* vtkNotUsed(segment)) override { return true; } \
   virtual unsigned int GetConversionCost( \
-    vtkDataObject* sourceRepresentation=NULL, \
-    vtkDataObject* targetRepresentation=NULL)  VTK_OVERRIDE \
+    vtkDataObject* sourceRepresentation=nullptr, \
+    vtkDataObject* targetRepresentation=nullptr)  override \
   { \
     (void)sourceRepresentation; \
     (void)targetRepresentation; \
     return weight; \
   }; \
-  virtual const char* GetName() VTK_OVERRIDE { return "Rep " #from " to Rep " #to; } \
-  virtual const char* GetSourceRepresentationName() VTK_OVERRIDE { return "Rep" #from ; }  \
-  virtual const char* GetTargetRepresentationName()  VTK_OVERRIDE { return "Rep" #to ; } \
+  virtual const char* GetName() override { return "Rep " #from " to Rep " #to; } \
+  virtual const char* GetSourceRepresentationName() override { return "Rep" #from ; }  \
+  virtual const char* GetTargetRepresentationName()  override { return "Rep" #to ; } \
 }; \
 vtkSegmentationConverterRuleNewMacro(vtkRep##from##ToRep##to##Rule);
 

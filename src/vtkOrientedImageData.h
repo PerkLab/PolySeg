@@ -37,12 +37,12 @@ class PolySeg_EXPORT vtkOrientedImageData : public vtkImageData
 public:
   static vtkOrientedImageData *New();
   vtkTypeMacro(vtkOrientedImageData,vtkImageData);
-  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /// Shallow copy
-  virtual void ShallowCopy(vtkDataObject *src) VTK_OVERRIDE;
+  void ShallowCopy(vtkDataObject *src) override;
   /// Deep copy
-  virtual void DeepCopy(vtkDataObject *src) VTK_OVERRIDE;
+  void DeepCopy(vtkDataObject *src) override;
   /// Copy orientation information only
   virtual void CopyDirections(vtkDataObject *src);
 
@@ -75,7 +75,7 @@ public:
   void SetGeometryFromImageToWorldMatrix(vtkMatrix4x4* mat);
 
   /// Compute image bounds (xmin,xmax, ymin,ymax, zmin,zmax).
-  virtual void ComputeBounds() VTK_OVERRIDE;
+  void ComputeBounds() override;
 
   /// Get the inverse of the geometry matrix
   void GetWorldToImageMatrix(vtkMatrix4x4* mat);
@@ -85,7 +85,7 @@ public:
 
 protected:
   vtkOrientedImageData();
-  ~vtkOrientedImageData();
+  ~vtkOrientedImageData() override;
 
 protected:
   /// Direction matrix for the image data
@@ -93,8 +93,8 @@ protected:
   double Directions[3][3];
 
 private:
-  vtkOrientedImageData(const vtkOrientedImageData&);  // Not implemented.
-  void operator=(const vtkOrientedImageData&);  // Not implemented.
+  vtkOrientedImageData(const vtkOrientedImageData&) = delete;
+  void operator=(const vtkOrientedImageData&) = delete;
 };
 
 #endif

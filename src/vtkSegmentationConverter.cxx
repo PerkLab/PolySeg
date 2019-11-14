@@ -53,8 +53,7 @@ vtkSegmentationConverter::vtkSegmentationConverter()
 
 //----------------------------------------------------------------------------
 vtkSegmentationConverter::~vtkSegmentationConverter()
-{
-}
+= default;
 
 //----------------------------------------------------------------------------
 void vtkSegmentationConverter::PrintSelf(ostream& os, vtkIndent indent)
@@ -538,6 +537,11 @@ void vtkSegmentationConverter::ApplyTransformOnReferenceImageGeometry(vtkAbstrac
     }
   // Get current reference geometry parameter
   std::string geometryString = this->GetConversionParameter(vtkSegmentationConverter::GetReferenceImageGeometryParameterName());
+  if (geometryString.empty())
+    {
+    vtkDebugMacro("ApplyTransformOnReferenceImageGeometry: Reference image geometry conversion parameter is empty");
+    return;
+    }
 
   // Deserialize parameter string into oriented image data
   vtkSmartPointer<vtkOrientedImageData> geometryImage = vtkSmartPointer<vtkOrientedImageData>::New();

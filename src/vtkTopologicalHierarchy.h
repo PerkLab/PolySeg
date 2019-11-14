@@ -98,11 +98,11 @@ protected:
 
 protected:
   vtkTopologicalHierarchy();
-  ~vtkTopologicalHierarchy();
+  ~vtkTopologicalHierarchy() override;
 
 private:
-  vtkTopologicalHierarchy(const vtkTopologicalHierarchy&); // Not implemented
-  void operator=(const vtkTopologicalHierarchy&);               // Not implemented
+  vtkTopologicalHierarchy(const vtkTopologicalHierarchy&) = delete;
+  void operator=(const vtkTopologicalHierarchy&) = delete;
 };
 
 #endif

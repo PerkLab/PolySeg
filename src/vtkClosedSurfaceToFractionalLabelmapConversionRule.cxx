@@ -29,6 +29,9 @@
 #include <vtkIntArray.h>
 #include <vtkFieldData.h>
 
+// SegmentationCore includes
+#include "vtkSegment.h"
+
 //----------------------------------------------------------------------------
 vtkSegmentationConverterRuleNewMacro(vtkClosedSurfaceToFractionalLabelmapConversionRule);
 
@@ -41,13 +44,12 @@ vtkClosedSurfaceToFractionalLabelmapConversionRule::vtkClosedSurfaceToFractional
 
 //----------------------------------------------------------------------------
 vtkClosedSurfaceToFractionalLabelmapConversionRule::~vtkClosedSurfaceToFractionalLabelmapConversionRule()
-{
-}
+= default;
 
 //----------------------------------------------------------------------------
 unsigned int vtkClosedSurfaceToFractionalLabelmapConversionRule::GetConversionCost(
-  vtkDataObject* vtkNotUsed(sourceRepresentation)/*=NULL*/,
-  vtkDataObject* vtkNotUsed(targetRepresentation)/*=NULL*/)
+  vtkDataObject* vtkNotUsed(sourceRepresentation)/*=nullptr*/,
+  vtkDataObject* vtkNotUsed(targetRepresentation)/*=nullptr*/)
 {
   // Rough input-independent guess (ms)
   return 7000;
@@ -66,7 +68,7 @@ vtkDataObject* vtkClosedSurfaceToFractionalLabelmapConversionRule::ConstructRepr
     }
   else
     {
-    return NULL;
+    return nullptr;
     }
 }
 
@@ -83,13 +85,17 @@ vtkDataObject* vtkClosedSurfaceToFractionalLabelmapConversionRule::ConstructRepr
     }
   else
     {
-    return NULL;
+    return nullptr;
     }
 }
 
 //----------------------------------------------------------------------------
-bool vtkClosedSurfaceToFractionalLabelmapConversionRule::Convert(vtkDataObject* sourceRepresentation, vtkDataObject* targetRepresentation)
+bool vtkClosedSurfaceToFractionalLabelmapConversionRule::Convert(vtkSegment* segment)
 {
+  this->CreateTargetRepresentation(segment);
+
+  vtkDataObject* sourceRepresentation = segment->GetRepresentation(this->GetSourceRepresentationName());
+  vtkDataObject* targetRepresentation = segment->GetRepresentation(this->GetTargetRepresentationName());
 
   // Check validity of source and target representation objects
   vtkPolyData* closedSurfacePolyData = vtkPolyData::SafeDownCast(sourceRepresentation);
