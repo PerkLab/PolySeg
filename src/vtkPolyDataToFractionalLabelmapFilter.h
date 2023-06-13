@@ -88,14 +88,14 @@ public:
   double* GetOutputOrigin() override;
   void GetOutputOrigin(double origin[3]) override;
 
-  void SetOutputOrigin(double origin[3]) override;
+  void SetOutputOrigin(double origin[3]);
   void SetOutputOrigin(double x, double y, double z) override;
 
   using Superclass::GetOutputSpacing;
   double* GetOutputSpacing() override;
   void GetOutputSpacing(double spacing[3]) override;
 
-  void SetOutputSpacing(double spacing[3]) override;
+  void SetOutputSpacing(double spacing[3]);
   void SetOutputSpacing(double x, double y, double z) override;
 
 

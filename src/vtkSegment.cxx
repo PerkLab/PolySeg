@@ -166,7 +166,7 @@ void vtkSegment::DeepCopy(vtkSegment* source)
 {
   if (!source)
     {
-    vtkErrorMacro("vtkSegment::DeepCopy failed: sourceSegment is invalid")
+    vtkErrorMacro("vtkSegment::DeepCopy failed: sourceSegment is invalid");
     return;
     }
 
@@ -211,7 +211,7 @@ void vtkSegment::DeepCopyMetadata(vtkSegment* source)
 {
   if (!source)
     {
-    vtkErrorMacro("vtkSegment::DeepCopy failed: sourceSegment is invalid")
+    vtkErrorMacro("vtkSegment::DeepCopy failed: sourceSegment is invalid");
     return;
     }
 

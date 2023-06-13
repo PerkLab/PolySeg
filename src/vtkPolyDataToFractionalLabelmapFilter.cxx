@@ -639,7 +639,7 @@ void vtkPolyDataToFractionalLabelmapFilter::FillImageStencilData(
       // get the connectivity count for each point
       vtkSmartPointer<vtkCellArray> lines = slice->GetLines();
       vtkIdType npts = 0;
-      vtkIdType *pointIds = nullptr;
+      const vtkIdType *pointIds = nullptr;
       vtkIdType count = lines->GetNumberOfConnectivityEntries();
       for (vtkIdType loc = 0; loc < count; loc += npts + 1)
         {
@@ -827,7 +827,7 @@ void vtkPolyDataToFractionalLabelmapFilter::FillImageStencilData(
 
     vtkCellArray* lines = this->LinesCache[z];
     vtkIdType count = lines->GetNumberOfConnectivityEntries();
-    vtkIdType* pointIds = this->PointIdsCache[z];
+    const vtkIdType* pointIds = this->PointIdsCache[z];
     vtkIdType npts = this->NptsCache[z];
     vtkIdTypeArray* pointNeighborCountsArray = this->PointNeighborCountsCache[z];
     vtkIdType* pointNeighborCounts = pointNeighborCountsArray->GetPointer(0);
@@ -915,7 +915,8 @@ void vtkPolyDataToFractionalLabelmapFilter::PolyDataCutter(
         continue;
       }
 
-    vtkIdType npts, *ptIds;
+    vtkIdType npts;
+    const vtkIdType* ptIds;
     input->GetCellPoints(id, npts, ptIds);
     loc += npts + 1;
 
