@@ -1,0 +1,16 @@
+{
+  "name": "hellopolyseg",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "itk-js build .",
+    "test": "node ./index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "fs-extra": "^7.0.1",
+    "itk": "^9.2.0"
+  }
+}
